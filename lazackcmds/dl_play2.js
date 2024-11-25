@@ -1,84 +1,52 @@
-import ytdl from 'youtubedl-core';
-import axios from 'axios';
-import fs from 'fs';
-import { pipeline } from 'stream';
-import { promisify } from 'util';
-import os from 'os';
+import ytSearch from "yt-search";
+import { youtube } from "btch-downloader";
 
-const streamPipeline = promisify(pipeline);
+let handler = async (m, { conn, text, usedPrefix, command }) => {
+  if (!text) return m.reply(`Enter the title or YouTube link!\nExample: *${usedPrefix + command} Faded Alan Walker*`);
 
-let handler = async (m, { conn, command, text, usedPrefix }) => {
-  if (!text) throw `Use example: ${usedPrefix}${command} naruto blue bird`;
-  await m.react('⏳'); // Assuming rwait is an emoji
-
+  await m.reply("🔄 Please wait while lazack is searching the audio...");
   try {
-    const query = encodeURIComponent(text);
-    const response = await axios.get(`https://apisku-furina.vercel.app/api/downloader/play?q=${query}&apikey=indradev`);
-    const result = response.data.results[0];
+    const search = await ytSearch(text); // Search for the video
+    const video = search.videos[0];
 
-    if (!result) throw 'Video Not Found, Try Another Title';
+    if (!video) return m.reply("❌ No results found! Please try again with a different query.");
+    if (video.seconds >= 3600) return m.reply("❌ Video duration exceeds 1 hour. Please choose a shorter video!");
 
-    const { title, thumbnail, duration, views, uploaded, url } = result;
+    // Attempt to get the audio URL
+    let audioUrl;
+    try {
+      audioUrl = await youtube(video.url);
+    } catch (error) {
+      return m.reply("⚠️ Failed to fetch audio. Please try again later.");
+    }
 
-    const captvid = `✼ ••๑⋯ ❀ Y O U T U B E ❀ ⋯⋅๑•• ✼
-❏ Title: ${title}
-❐ Duration: ${duration}
-❑ Views: ${views}
-❒ Upload: ${uploaded}
-❒ Link: ${url}
-
-> I CAN'T DOWNLOAD FOR YOU NOW WE ARE FIXING THE PROBLEM.
-> ©Lazack_28
-⊱─━━━━⊱༻●༺⊰━━━━─⊰`;
-
-    await conn.sendMessage(m.chat, { image: { url: thumbnail }, caption: captvid }, { quoted: m });
-
-    const audioStream = ytdl(url, {
-      filter: 'audioonly',
-      quality: 'highestaudio',
-    });
-
-    const tmpDir = os.tmpdir();
-    const audioPath = `${tmpDir}/${title}.mp3`;
-    const writableStream = fs.createWriteStream(audioPath);
-
-    await streamPipeline(audioStream, writableStream);
-
-    const doc = {
-      audio: {
-        url: audioPath,
-      },
-      mimetype: 'audio/mpeg',
-      ptt: false,
-      waveform: [100, 0, 0, 0, 0, 0, 100],
-      fileName: title,
-      contextInfo: {
-        externalAdReply: {
-          showAdAttribution: true,
-          mediaType: 2,
-          mediaUrl: url,
-          title: title,
-          body: 'HERE IS YOUR SONG',
-          sourceUrl: url,
-          thumbnail: await (await conn.getFile(thumbnail)).data,
+    // Send audio file
+    await conn.sendMessage(
+      m.chat,
+      {
+        audio: { url: audioUrl.mp3 },
+        mimetype: "audio/mpeg",
+        contextInfo: {
+          externalAdReply: {
+            title: video.title,
+            body: "",
+            thumbnailUrl: video.image,
+            sourceUrl: video.url,
+            mediaType: 1,
+            showAdAttribution: true,
+            renderLargerThumbnail: true,
+          },
         },
       },
-    };
-
-    await conn.sendMessage(m.chat, doc, { quoted: m });
-
-    // Cleanup
-    await fs.promises.unlink(audioPath);
-    console.log(`Deleted audio file: ${audioPath}`);
+      { quoted: m }
+    );
   } catch (error) {
-    console.error(error);
-    throw 'An error occurred while searching for YouTube videos.';
+    m.reply(`❌ Error: ${error.message}`);
   }
 };
 
-handler.help = ['play'].map((v) => v + ' <query>');
-handler.tags = ['downloader'];
-handler.command = /^play7$/i;
-handler.exp = 0;
+handler.help = ["play"];
+handler.tags = ["downloader"];
+handler.command = /^play$/i;
 
 export default handler;
