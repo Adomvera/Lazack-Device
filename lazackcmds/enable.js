@@ -38,6 +38,13 @@ let handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, isR
         throw false
       }
       bot.pmblocker = isEnable
+      case 'antilink2': case 'antienlace2':
+if (m.isGroup) {
+if (!(isAdmin || isOwner)) {
+global.dfail('admin', m, conn)
+throw false
+}}
+chat.antiLink2 = isEnable 
       break
     case 'autobio':
       isAll = true
@@ -224,6 +231,7 @@ let handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, isR
 ◈──『 *ADMIN*』───⳹
 ⛊ welcome
 ⛊ antilink
+⛊ antilink2
 ⛊ nsfw
 ⛊ autosticker
 ⛊ detect
@@ -240,6 +248,7 @@ let handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, isR
 ⛊ grouponly
 ⛊ autotype
 ⛊ autobio
+⛊ self
 ╰──────────⳹
 *📌 Example :*
 *${usedPrefix}on* welcome

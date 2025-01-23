@@ -2,6 +2,7 @@ import { watchFile, unwatchFile } from 'fs'
 import chalk from 'chalk'
 import { fileURLToPath } from 'url'
 import fs from 'fs'
+//import './lazackcmds/allfake.js'
 
 import dotenv from 'dotenv'
 dotenv.config()
@@ -42,7 +43,8 @@ global.keysneoxrrr = ['5VC9rvNx', 'cfALv5']
 global.keysneoxr = keysneoxrrr[Math.floor(keysneoxrrr.length * Math.random())]
 global.lolkeysapi = ['GataDios']
 
-global.canal = 'https://whatsapp.com/channel/0029VaFytPbAojYm7RIs6l1x'
+global.rcanal = 'https://whatsapp.com/channel/0029VaIRINGCXC3EussN4b2E'
+global.canal = 'https://whatsapp.com/channel/0029VaIRINGCXC3EussN4b2E'
 
 
 global.APIs = {
